@@ -1,0 +1,163 @@
+//@version=6
+strategy("Failure Swing Liquidity Model (Transcript v1)", overlay=true, pyramiding=0, initial_capital=10000, commission_type=strategy.commission.percent, commission_value=0.0)
+
+// -------------------------
+// Inputs
+// -------------------------
+groupStructure = "Structure"
+pivotLen        = input.int(defval=3, title="Swing Pivot Length", minval=1, group=groupStructure)
+rangeLookback   = input.int(defval=100, title="Dealing Range Lookback", minval=20, group=groupStructure)
+sweepBufferTick = input.int(defval=1, title="Sweep Buffer (ticks)", minval=0, group=groupStructure)
+
+groupRisk = "Risk / Targets"
+useLiquidityTarget = input.bool(defval=true, title="Use Failure Swing Liquidity as TP", group=groupRisk)
+fallbackRR         = input.float(defval=2.0, title="Fallback RR if no valid liquidity TP", minval=0.5, step=0.25, group=groupRisk)
+
+groupVisual = "Visuals"
+showRange = input.bool(defval=true, title="Show Premium/Discount Midline", group=groupVisual)
+showBG    = input.bool(defval=true, title="Shade Premium/Discount", group=groupVisual)
+
+// -------------------------
+// Swing structure tracking
+// -------------------------
+var float prevSwingHigh = na
+var float lastSwingHigh = na
+var float prevSwingLow  = na
+var float lastSwingLow  = na
+
+var float lastBearFailureHigh = na   // high that failed to take previous high (lower high)
+var float lastBullFailureLow  = na   // low that failed to take previous low (higher low)
+
+bool bearFailureNow = false
+bool bullFailureNow = false
+
+ph = ta.pivothigh(high, pivotLen, pivotLen)
+pl = ta.pivotlow(low, pivotLen, pivotLen)
+
+if not na(ph)
+    prevSwingHigh := lastSwingHigh
+    lastSwingHigh := ph
+    // Bearish failure swing = high fails to take prior high
+    if not na(prevSwingHigh) and ph < prevSwingHigh
+        lastBearFailureHigh := ph
+        bearFailureNow := true
+
+if not na(pl)
+    prevSwingLow := lastSwingLow
+    lastSwingLow := pl
+    // Bullish failure swing = low fails to take prior low
+    if not na(prevSwingLow) and pl > prevSwingLow
+        lastBullFailureLow := pl
+        bullFailureNow := true
+
+// -------------------------
+// Premium / Discount filter
+// -------------------------
+rangeHigh = ta.highest(high, rangeLookback)
+rangeLow  = ta.lowest(low, rangeLookback)
+eq        = (rangeHigh + rangeLow) / 2.0
+
+inPremium  = close > eq
+inDiscount = close < eq
+
+if showBG
+    bgcolor(inPremium ? color.new(color.red, 92) : inDiscount ? color.new(color.green, 92) : na)
+
+plot(showRange ? eq : na, "Dealing Range Midpoint", color=color.new(color.blue, 0), linewidth=2)
+
+// -------------------------
+// High-resistance liquidity runs (sweep + rejection)
+// -------------------------
+tickBuffer = syminfo.mintick * sweepBufferTick
+
+// Bullish confirmation: run below low and reject back above it
+bullHighResistanceRun = not na(lastSwingLow) and low < (lastSwingLow - tickBuffer) and close > lastSwingLow
+
+// Bearish confirmation: run above high and reject back below it
+bearHighResistanceRun = not na(lastSwingHigh) and high > (lastSwingHigh + tickBuffer) and close < lastSwingHigh
+
+// -------------------------
+// Entry logic (from transcript model)
+// -------------------------
+// Bullish setup:
+// 1) Discount context
+// 2) High-resistance low run (sweep/reject)
+// 3) Target available above = bearish failure swing high (low-resistance liquidity)
+longSignal = bullHighResistanceRun and inDiscount and not na(lastBearFailureHigh) and lastBearFailureHigh > close
+
+// Bearish setup:
+// 1) Premium context
+// 2) High-resistance high run (sweep/reject)
+// 3) Target available below = bullish failure swing low (low-resistance liquidity)
+shortSignal = bearHighResistanceRun and inPremium and not na(lastBullFailureLow) and lastBullFailureLow < close
+
+// -------------------------
+// Risk model
+// -------------------------
+var float activeLongStop  = na
+var float activeLongTP    = na
+var float activeShortStop = na
+var float activeShortTP   = na
+
+longStopCandidate  = lastSwingLow
+shortStopCandidate = lastSwingHigh
+
+longRisk  = close - longStopCandidate
+shortRisk = shortStopCandidate - close
+
+longTPCandidate  = lastBearFailureHigh
+shortTPCandidate = lastBullFailureLow
+
+longTP = na
+shortTP = na
+
+if not na(longStopCandidate) and longRisk > syminfo.mintick
+    longTP := (useLiquidityTarget and not na(longTPCandidate) and longTPCandidate > close) ? longTPCandidate : close + longRisk * fallbackRR
+
+if not na(shortStopCandidate) and shortRisk > syminfo.mintick
+    shortTP := (useLiquidityTarget and not na(shortTPCandidate) and shortTPCandidate < close) ? shortTPCandidate : close - shortRisk * fallbackRR
+
+canLong  = longSignal and strategy.position_size <= 0 and not na(longTP) and not na(longStopCandidate)
+canShort = shortSignal and strategy.position_size >= 0 and not na(shortTP) and not na(shortStopCandidate)
+
+if canLong
+    activeLongStop := longStopCandidate
+    activeLongTP   := longTP
+    strategy.entry("Long", strategy.long)
+
+if canShort
+    activeShortStop := shortStopCandidate
+    activeShortTP   := shortTP
+    strategy.entry("Short", strategy.short)
+
+// Keep exits fixed for active trade
+if strategy.position_size > 0 and not na(activeLongStop) and not na(activeLongTP)
+    strategy.exit("Long Exit", "Long", stop=activeLongStop, limit=activeLongTP)
+
+if strategy.position_size < 0 and not na(activeShortStop) and not na(activeShortTP)
+    strategy.exit("Short Exit", "Short", stop=activeShortStop, limit=activeShortTP)
+
+// Reset stored exits when flat
+if strategy.position_size == 0
+    activeLongStop  := na
+    activeLongTP    := na
+    activeShortStop := na
+    activeShortTP   := na
+
+// -------------------------
+// Visual markers
+// -------------------------
+plotshape(bearFailureNow, title="Bearish Failure Swing (LH)", style=shape.triangledown, location=location.abovebar, color=color.orange, size=size.tiny, offset=-pivotLen, text="FSH")
+plotshape(bullFailureNow, title="Bullish Failure Swing (HL)", style=shape.triangleup, location=location.belowbar, color=color.aqua, size=size.tiny, offset=-pivotLen, text="FSL")
+
+plotshape(bullHighResistanceRun, title="High-Resistance Low Run", style=shape.circle, location=location.belowbar, color=color.lime, size=size.tiny, text="HRL")
+plotshape(bearHighResistanceRun, title="High-Resistance High Run", style=shape.circle, location=location.abovebar, color=color.red, size=size.tiny, text="HRH")
+
+plot(lastBearFailureHigh, "Latest Bearish Failure High (target up)", color=color.new(color.orange, 0), linewidth=1, style=plot.style_linebr)
+plot(lastBullFailureLow,  "Latest Bullish Failure Low (target down)", color=color.new(color.aqua, 0), linewidth=1, style=plot.style_linebr)
+
+// -------------------------
+// Alerts
+// -------------------------
+alertcondition(longSignal, title="Long Setup", message="Bullish setup: discount + high-resistance low run + failure-swing target above.")
+alertcondition(shortSignal, title="Short Setup", message="Bearish setup: premium + high-resistance high run + failure-swing target below.")
