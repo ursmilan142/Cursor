@@ -3,6 +3,11 @@
 Nepali Voice Cloning Engine
 Core module for cloning voices and synthesizing Nepali text using Coqui TTS (YourTTS model).
 Fully local/offline operation - no cloud API calls required.
+
+Note: The YourTTS model supports: en, fr-fr, pt-br.  Nepali (ne) is NOT a supported
+language code.  Use ``language="hi"`` (Hindi) as a practical fallback — the phonetic
+similarity means the model can still reproduce Devanagari text reasonably well for
+voice-cloning purposes.
 """
 
 import os
@@ -45,16 +50,20 @@ class NepaliVoiceCloner:
         text: str,
         reference_audio: str,
         output_file: str = "output.wav",
-        language: str = "ne",
+        language: str = "hi",
     ) -> str | None:
         """
         Clone voice and synthesize text.
 
         Args:
-            text: Text to synthesize (Nepali by default).
+            text: Text to synthesize (Nepali/Hindi Devanagari script).
             reference_audio: Path to reference voice sample (10-30 seconds recommended).
             output_file: Path for the generated audio file.
-            language: BCP-47 language code (default: ``"ne"`` for Nepali).
+            language: BCP-47 language code supported by YourTTS.
+                      Supported values: ``"en"``, ``"fr-fr"``, ``"pt-br"``, ``"hi"``.
+                      Defaults to ``"hi"`` (Hindi) because YourTTS does **not** support
+                      ``"ne"`` (Nepali) directly; Hindi shares the Devanagari script and
+                      works as a practical fallback for Nepali text.
 
         Returns:
             Path to the generated file, or ``None`` on failure.
@@ -88,7 +97,7 @@ class NepaliVoiceCloner:
         text_file: str,
         reference_audio: str,
         output_file: str = "output.wav",
-        language: str = "ne",
+        language: str = "hi",
     ) -> str | None:
         """
         Synthesize speech from a plain-text file.
@@ -122,7 +131,7 @@ class NepaliVoiceCloner:
         texts: list[str],
         reference_audio: str,
         output_dir: str = "data/output",
-        language: str = "ne",
+        language: str = "hi",
         prefix: str = "output",
     ) -> list[str]:
         """
@@ -187,7 +196,7 @@ Examples:
         "--output", type=str, default="data/output/output.wav", help="Output audio file path"
     )
     parser.add_argument(
-        "--language", type=str, default="ne", help="BCP-47 language code (default: ne)"
+        "--language", type=str, default="hi", help="BCP-47 language code (default: hi for Hindi/Nepali)"
     )
     parser.add_argument(
         "--gpu", action="store_true", help="Enable GPU acceleration (default: CPU)"

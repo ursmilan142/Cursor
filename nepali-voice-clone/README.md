@@ -5,10 +5,10 @@ A **fully local, offline** Nepali voice cloning text-to-speech system for Window
 ## Features
 
 - 🎤 **Voice Cloning** — Clone your voice from a 10–30 second sample
-- 🇳🇵 **Nepali TTS** — Synthesize Nepali (and other multilingual) text
+- 🇳🇵 **Nepali TTS** — Synthesize Nepali (Devanagari) text using Hindi (`hi`) as the language code
 - 💻 **Fully Local** — Runs entirely on your machine; no internet after model download
 - 🪟 **Windows-Optimized** — Setup scripts for PowerShell, CMD, and Git Bash
-- 🐍 **Python 3.14 Compatible** — Tested on Python 3.14
+- 🐍 **Python 3.11 Compatible** — Tested on Python 3.11 (recommended; `TTS==0.22.0` requires Python ≤ 3.11)
 - ⚡ **CPU Default** — Works without a GPU; optional GPU acceleration
 - 🔄 **Batch Processing** — Synthesize multiple sentences at once
 - 🌐 **Optional REST API** — FastAPI server for programmatic access
@@ -54,8 +54,14 @@ Speak clearly for 15–30 seconds. The recording is saved as `my_voice.wav`.
 python scripts/main.py synthesize \
     --text "नमस्ते, मेरो नाम उर्स हो।" \
     --voice-sample my_voice.wav \
-    --output data/output/hello.wav
+    --output data/output/hello.wav \
+    --language hi
 ```
+
+> **Note on language support:** The YourTTS model does **not** support Nepali (`ne`).
+> Supported codes are `en`, `fr-fr`, `pt-br`, and `hi` (Hindi).
+> Use `--language hi` when synthesizing Nepali (Devanagari) text — Hindi shares the
+> same script and works as a practical fallback for voice cloning.
 
 ## Project Structure
 
@@ -105,7 +111,7 @@ python scripts/main.py synthesize --voice-sample FILE (--text TEXT | --text-file
 | `--text-file` | — | Path to UTF-8 text file |
 | `--voice-sample` | *(required)* | Reference voice WAV file |
 | `--output` | `data/output/output.wav` | Output audio file |
-| `--language` | `ne` | BCP-47 language code |
+| `--language` | `hi` | BCP-47 language code (use `hi` for Nepali Devanagari text) |
 | `--gpu` | off | Enable GPU acceleration |
 | `--batch` | off | One output file per line in `--text-file` |
 
@@ -146,7 +152,7 @@ Then open `http://127.0.0.1:8000/docs` for the interactive Swagger UI.
 
 ## Requirements
 
-- Python 3.9+ (tested with 3.14)
+- Python 3.11 (recommended; `TTS==0.22.0` requires Python ≤ 3.11)
 - ~5 GB free disk space (model cache + dependencies)
 - Microphone (for voice recording)
 - Windows 10/11 (also works on Linux/macOS)
