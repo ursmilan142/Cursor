@@ -16,12 +16,13 @@ echo.
 REM ---- Verify py ----
 py --version >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] py not found. Download from https://py.org
+    echo [ERROR] py not found. Download Python 3.11 from https://python.org/downloads/
     pause
     exit /b 1
 )
 for /f "tokens=*" %%i in ('py --version 2^>^&1') do set PYVER=%%i
 echo [OK] Found %PYVER%
+echo [NOTE] Python 3.11 is recommended. TTS==0.22.0 requires Python ^<=3.11.
 
 REM ---- Create virtual environment ----
 if not exist "venv" (
@@ -60,19 +61,12 @@ if errorlevel 1 (
     echo [WARNING] Some packages failed to install. Check the error messages above.
 )
 
-REM ---- Install PyAudio ----
-echo [INFO] Installing PyAudio...
-pip install pyaudio
+REM ---- Install sounddevice ----
+echo [INFO] Installing sounddevice (cross-platform audio, no build tools needed)...
+pip install sounddevice
 if errorlevel 1 (
-    echo [WARNING] PyAudio direct install failed. Trying pipwin...
-    pip install pipwin
-    pipwin install pyaudio
-    if errorlevel 1 (
-        echo [WARNING] PyAudio could not be installed automatically.
-        echo           Voice recording will not be available.
-        echo           Download PyAudio wheel manually:
-        echo           https://www.lfd.uci.edu/~gohlke/pylibs/#pyaudio
-    )
+    echo [WARNING] sounddevice could not be installed.
+    echo           Voice recording will not be available.
 )
 
 REM ---- Create output directory ----
@@ -88,8 +82,8 @@ echo Next steps:
 echo   1. Record your voice:
 echo        py scripts\record_voice.py
 echo.
-echo   2. Synthesize Nepali text:
-echo        py scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav
+echo   2. Synthesize Nepali text (using Hindi language code as fallback):
+echo        py scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav --language hi
 echo.
 echo   See README.md and WINDOWS_GUIDE.md for more details.
 echo.

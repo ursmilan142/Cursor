@@ -30,60 +30,60 @@ def record_audio(
         Path to the saved WAV file.
     """
     try:
-        import pyaudio  # type: ignore[import-untyped]
+        import sounddevice as sd  # type: ignore[import-untyped]
+        import numpy as np
     except ImportError:
-        print("❌ PyAudio not found.")
-        print("   Install it with one of the following commands:")
-        print("   pip install pyaudio")
-        print("   -- or, on Windows if the above fails --")
-        print("   pip install pipwin && pipwin install pyaudio")
+        print("❌ sounddevice not found.")
+        print("   Install it with: pip install sounddevice")
         sys.exit(1)
-
-    CHUNK = 1024
-    FORMAT = pyaudio.paInt16
-
-    p = pyaudio.PyAudio()
 
     print(f"\n🎤 Recording up to {duration} seconds of audio...")
     print("   Speak clearly into your microphone.")
     print("   Press Ctrl+C to stop recording early.\n")
 
-    stream = p.open(
-        format=FORMAT,
-        channels=channels,
-        rate=sample_rate,
-        input=True,
-        frames_per_buffer=CHUNK,
-    )
+    frames: list = []
 
-    frames: list[bytes] = []
-    total_chunks = int(sample_rate / CHUNK * duration)
+    def audio_callback(indata, frame_count, time_info, status):
+        frames.append(indata.copy())
 
     try:
-        for i in range(total_chunks):
-            data = stream.read(CHUNK, exception_on_overflow=False)
-            frames.append(data)
-            elapsed = i * CHUNK / sample_rate
-            remaining = duration - elapsed
-            sys.stdout.write(f"\r⏱️  {elapsed:5.1f}s elapsed  |  {remaining:5.1f}s remaining ")
-            sys.stdout.flush()
+        with sd.InputStream(
+            samplerate=sample_rate,
+            channels=channels,
+            dtype="int16",
+            callback=audio_callback,
+        ):
+            total_frames = duration * sample_rate
+            recorded = 0
+            while recorded < total_frames:
+                sd.sleep(100)
+                recorded = sum(len(f) for f in frames)
+                elapsed = recorded / sample_rate
+                remaining = max(0.0, duration - elapsed)
+                sys.stdout.write(
+                    f"\r⏱️  {elapsed:5.1f}s elapsed  |  {remaining:5.1f}s remaining "
+                )
+                sys.stdout.flush()
     except KeyboardInterrupt:
         print("\n\n⏹️  Recording stopped early by user.")
 
     print()
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
 
     # Save as WAV
     out_path = Path(filename)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    audio_data = (
+        np.concatenate([f.reshape(-1, channels) for f in frames], axis=0)
+        if frames
+        else np.zeros((0, channels), dtype="int16")
+    )
+
     with wave.open(str(out_path), "wb") as wf:
         wf.setnchannels(channels)
-        wf.setsampwidth(p.get_sample_size(FORMAT))
+        wf.setsampwidth(2)  # 16-bit = 2 bytes
         wf.setframerate(sample_rate)
-        wf.writeframes(b"".join(frames))
+        wf.writeframes(audio_data.tobytes())
 
     size_kb = out_path.stat().st_size / 1024
     print(f"✅ Recording saved: {out_path}  ({size_kb:.1f} KB)")
@@ -93,31 +93,21 @@ def record_audio(
 def play_audio(filename: str) -> None:
     """Play back a WAV file so the user can verify the recording."""
     try:
-        import pyaudio  # type: ignore[import-untyped]
+        import sounddevice as sd  # type: ignore[import-untyped]
+        import soundfile as sf  # type: ignore[import-untyped]
     except ImportError:
-        print("⚠️  PyAudio not available — cannot play back audio.")
+        print("⚠️  sounddevice/soundfile not available — cannot play back audio.")
         return
 
-    p = pyaudio.PyAudio()
     try:
-        with wave.open(filename, "rb") as wf:
-            stream = p.open(
-                format=p.get_format_from_width(wf.getsampwidth()),
-                channels=wf.getnchannels(),
-                rate=wf.getframerate(),
-                output=True,
-            )
-            print(f"\n▶️  Playing back: {filename}")
-            data = wf.readframes(1024)
-            while data:
-                stream.write(data)
-                data = wf.readframes(1024)
-            stream.stop_stream()
-            stream.close()
+        print(f"\n▶️  Playing back: {filename}")
+        data, sample_rate = sf.read(filename, dtype="int16")
+        sd.play(data, sample_rate)
+        sd.wait()
     except FileNotFoundError:
         print(f"❌ File not found: {filename}")
-    finally:
-        p.terminate()
+    except Exception as exc:  # noqa: BLE001
+        print(f"❌ Playback error: {exc}")
 
 
 # ---------------------------------------------------------------------------

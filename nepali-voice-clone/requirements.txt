@@ -1,10 +1,9 @@
-torch==2.10.0
-torchaudio==2.10.0
+torch==2.6.0
+torchaudio==2.6.0
 TTS==0.22.0
 numpy==1.24.3
 scipy==1.11.2
 soundfile==0.12.1
 librosa==0.10.0
 pydub==0.25.1
-pyaudio-stubs==1.1.1
-pipwin==0.5.2
+sounddevice==0.5.1
