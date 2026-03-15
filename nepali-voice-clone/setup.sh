@@ -36,6 +36,11 @@ command -v python &>/dev/null || error "Python not found. Install from https://p
 PYVER=$(python --version 2>&1)
 success "Found $PYVER"
 
+# ---- Check Python version is 3.8 or later ----
+python -c "import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)" \
+    || error "Python 3.8 or later is required. Found $PYVER. Install from https://python.org"
+success "Python version is sufficient for Indic Parler TTS."
+
 # ---- Create and activate virtual environment ----
 if [ ! -d "venv" ]; then
     info "Creating virtual environment..."
@@ -60,25 +65,9 @@ python -m pip install --upgrade pip setuptools wheel
 info "Installing PyTorch (CPU build)..."
 pip install "torch==2.6.0+cpu" "torchaudio==2.6.0+cpu" --index-url https://download.pytorch.org/whl/cpu
 
-# ---- Install remaining dependencies ----
-info "Installing TTS and audio dependencies..."
-pip install TTS numpy scipy soundfile librosa pydub
-
-# ---- Install PyAudio ----
-info "Installing PyAudio..."
-if ! pip install pyaudio 2>/dev/null; then
-    warn "Direct PyAudio install failed. Trying pipwin..."
-    if pip install pipwin 2>/dev/null && pipwin install pyaudio 2>/dev/null; then
-        success "PyAudio installed via pipwin."
-    else
-        warn "PyAudio could not be installed automatically."
-        warn "Voice recording will not be available."
-        warn "Download a pre-built wheel from:"
-        warn "  https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio"
-    fi
-else
-    success "PyAudio installed."
-fi
+# ---- Install indic-parler-tts and audio dependencies ----
+info "Installing Indic Parler TTS and audio dependencies..."
+pip install "git+https://github.com/ai4bharat/indic-parler-tts.git" numpy scipy soundfile sounddevice
 
 # ---- Create output directory ----
 mkdir -p data/output

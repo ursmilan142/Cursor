@@ -6,54 +6,24 @@ Common issues and their solutions for Windows users.
 
 ## Installation Issues
 
-### ❌ `pip install pyaudio` fails on Windows
-
-**Error:**
-```
-error: Microsoft Visual C++ 14.0 or greater is required
-```
+### ❌ `pip install indic-parler-tts` fails on Windows
 
 **Solutions (try in order):**
-
-1. **Use pipwin:**
-   ```cmd
-   pip install pipwin
-   pipwin install pyaudio
-   ```
-
-2. **Download a pre-built wheel:**
-   - Go to <https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio>
-   - Download the wheel matching your Python version (e.g., `PyAudio‑0.2.14‑cp314‑cp314‑win_amd64.whl`)
-   - Install it:
-     ```cmd
-     pip install PyAudio-0.2.14-cp314-cp314-win_amd64.whl
-     ```
-
-3. **Install Visual C++ Build Tools:**
-   - Download from <https://visualstudio.microsoft.com/visual-cpp-build-tools/>
-   - Select **"Desktop development with C++"** workload
-   - Retry `pip install pyaudio`
-
----
-
-### ❌ `pip install TTS` fails or hangs
-
-**Solutions:**
 
 1. Upgrade pip first:
    ```cmd
    python -m pip install --upgrade pip setuptools wheel
    ```
 
-2. Install with verbose output to see where it fails:
+2. Install directly from GitHub with verbose output:
    ```cmd
-   pip install TTS -v
+   pip install "git+https://github.com/ai4bharat/indic-parler-tts.git" -v
    ```
 
-3. Try installing dependencies separately:
+3. Install dependencies separately:
    ```cmd
-   pip install numpy scipy soundfile librosa
-   pip install TTS
+   pip install torch torchaudio numpy scipy soundfile
+   pip install "git+https://github.com/ai4bharat/indic-parler-tts.git"
    ```
 
 ---
@@ -61,7 +31,7 @@ error: Microsoft Visual C++ 14.0 or greater is required
 ### ❌ PyTorch installation fails
 
 ```cmd
-pip install "torch==2.6.0+cpu" "torchaudio==2.6.0+cpu" --index-url https://download.pytorch.org/whl/cpu
+pip install "torch>=1.9.0" "torchaudio>=0.9.0"
 ```
 
 If that fails, try the stable release page: <https://pytorch.org/get-started/locally/>
@@ -87,29 +57,20 @@ Then retry `.\setup.ps1`.
 
 ### ❌ Model download stuck or failing
 
-The Coqui TTS model (~1–2 GB) is downloaded on first use.
+The Indic Parler TTS model is downloaded on first use.
 
 **Check:**
 - Make sure you have a stable internet connection.
 - Make sure you have ~5 GB free disk space.
 
-**Set a custom cache directory:**
-
-**PowerShell:**
+**Delete and re-download the model cache (PowerShell):**
 ```powershell
-$env:TTS_HOME = "$env:USERPROFILE\.tts"
-python scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav
+Remove-Item -Recurse -Force "$env:USERPROFILE\.cache\huggingface"
 ```
 
 **CMD:**
 ```cmd
-set TTS_HOME=%USERPROFILE%\.tts
-python scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav
-```
-
-**Delete and re-download the model cache:**
-```cmd
-rmdir /s /q %USERPROFILE%\.tts
+rmdir /s /q %USERPROFILE%\.cache\huggingface
 ```
 
 ---
@@ -143,7 +104,7 @@ print(f"Duration: {len(data)/sr:.1f}s  Sample rate: {sr} Hz")
 
 ---
 
-### ❌ `No module named 'TTS'` (after setup)
+### ❌ `No module named 'indic_parler_tts'` (after setup)
 
 The virtual environment may not be activated.
 
@@ -204,8 +165,8 @@ Synthesis on CPU can take 10–60 seconds per sentence depending on your hardwar
 
 If your issue is not listed here:
 
-1. Check the [Coqui TTS issues](https://github.com/coqui-ai/TTS/issues) page.
-2. Search [Stack Overflow](https://stackoverflow.com/questions/tagged/coqui-tts).
+1. Check the [Indic Parler TTS issues](https://github.com/ai4bharat/indic-parler-tts/issues) page.
+2. Search [Stack Overflow](https://stackoverflow.com/questions/tagged/text-to-speech).
 3. Open an issue in this repository with:
    - Your Windows version (`winver`)
    - Python version (`python --version`)

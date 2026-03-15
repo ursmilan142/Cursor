@@ -1,14 +1,14 @@
 # Nepali Voice Cloning TTS
 
-A **fully local, offline** Nepali voice cloning text-to-speech system for Windows, powered by [Coqui TTS (YourTTS)](https://github.com/coqui-ai/TTS). Clone your own voice and synthesize any Nepali text — no cloud, no API keys required.
+A **fully local, offline** Nepali voice cloning text-to-speech system for Windows, powered by [Indic Parler TTS](https://github.com/ai4bharat/indic-parler-tts) from AI4Bharat — a state-of-the-art model specifically trained for Indian languages including **Nepali (नेपाली)**. Clone your own voice and synthesize any Nepali text — no cloud, no API keys required.
 
 ## Features
 
 - 🎤 **Voice Cloning** — Clone your voice from a 10–30 second sample
-- 🇳🇵 **Nepali TTS** — Synthesize Nepali (Devanagari) text using Hindi (`hi`) as the language code
+- 🇳🇵 **Native Nepali Support** — Synthesize Nepali (Devanagari) text with the `ne` language code
 - 💻 **Fully Local** — Runs entirely on your machine; no internet after model download
 - 🪟 **Windows-Optimized** — Setup scripts for PowerShell, CMD, and Git Bash
-- 🐍 **Python 3.11 Compatible** — Tested on Python 3.11 (recommended; `TTS==0.22.0` requires Python ≤ 3.11)
+- 🐍 **Python 3.8+** — Compatible with Python 3.8 and later
 - ⚡ **CPU Default** — Works without a GPU; optional GPU acceleration
 - 🔄 **Batch Processing** — Synthesize multiple sentences at once
 - 🌐 **Optional REST API** — FastAPI server for programmatic access
@@ -54,14 +54,11 @@ Speak clearly for 15–30 seconds. The recording is saved as `my_voice.wav`.
 python scripts/main.py synthesize \
     --text "नमस्ते, मेरो नाम उर्स हो।" \
     --voice-sample my_voice.wav \
-    --output data/output/hello.wav \
-    --language hi
+    --output data/output/hello.wav
 ```
 
-> **Note on language support:** The YourTTS model does **not** support Nepali (`ne`).
-> Supported codes are `en`, `fr-fr`, `pt-br`, and `hi` (Hindi).
-> Use `--language hi` when synthesizing Nepali (Devanagari) text — Hindi shares the
-> same script and works as a practical fallback for voice cloning.
+> **Native Nepali support:** Indic Parler TTS is trained specifically for Nepali (`ne`).
+> Use `--language ne` (the default) when synthesizing Nepali (Devanagari) text.
 
 ## Project Structure
 
@@ -111,7 +108,7 @@ python scripts/main.py synthesize --voice-sample FILE (--text TEXT | --text-file
 | `--text-file` | — | Path to UTF-8 text file |
 | `--voice-sample` | *(required)* | Reference voice WAV file |
 | `--output` | `data/output/output.wav` | Output audio file |
-| `--language` | `hi` | BCP-47 language code (use `hi` for Nepali Devanagari text) |
+| `--language` | `ne` | Language code (`ne` = Nepali, natively supported) |
 | `--gpu` | off | Enable GPU acceleration |
 | `--batch` | off | One output file per line in `--text-file` |
 
@@ -146,13 +143,13 @@ Then open `http://127.0.0.1:8000/docs` for the interactive Swagger UI.
 
 ## First-Run Notes
 
-- The TTS model (~1–2 GB) is downloaded on first use and cached in `%USERPROFILE%\.tts` (Windows).
+- The Indic Parler TTS model is downloaded on first use and cached locally.
 - An internet connection is only needed for the initial model download.
 - Subsequent runs are fully offline.
 
 ## Requirements
 
-- Python 3.11 (recommended; `TTS==0.22.0` requires Python ≤ 3.11)
+- Python 3.8 or later
 - ~5 GB free disk space (model cache + dependencies)
 - Microphone (for voice recording)
 - Windows 10/11 (also works on Linux/macOS)
@@ -165,4 +162,4 @@ This project is released under the [MIT License](../LICENSE).
 
 - [WINDOWS_GUIDE.md](WINDOWS_GUIDE.md) — Step-by-step Windows setup walkthrough
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) — Solutions to common problems
-- [Coqui TTS](https://github.com/coqui-ai/TTS) — Upstream TTS library
+- [Indic Parler TTS](https://github.com/ai4bharat/indic-parler-tts) — Upstream TTS library

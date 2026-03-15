@@ -1,45 +1,43 @@
 #!/usr/bin/env python3
 """
 Nepali Voice Cloning Engine
-Core module for cloning voices and synthesizing Nepali text using Coqui TTS (YourTTS model).
-Fully local/offline operation - no cloud API calls required.
-
-Note: The YourTTS model supports: en, fr-fr, pt-br.  Nepali (ne) is NOT a supported
-language code.  Use ``language="hi"`` (Hindi) as a practical fallback — the phonetic
-similarity means the model can still reproduce Devanagari text reasonably well for
-voice-cloning purposes.
+Core module for cloning voices and synthesizing Nepali text using
+Indic Parler TTS — a state-of-the-art model from AI4Bharat specifically
+trained for Indian languages including Nepali (नेपाली).
+Fully local/offline operation after the initial model download.
 """
 
-import os
 import sys
 import argparse
 from pathlib import Path
 
 
 class NepaliVoiceCloner:
-    """Voice cloning engine using Coqui TTS YourTTS model."""
+    """Voice cloning engine using Indic Parler TTS (AI4Bharat)."""
 
     def __init__(self, gpu: bool = False):
         """
-        Initialize TTS with voice cloning support.
+        Initialize Indic Parler TTS with Nepali language support.
 
         Args:
-            gpu: Use GPU acceleration if available (default: False for Windows CPU)
+            gpu: Use GPU acceleration if available (default: False for CPU)
         """
         try:
-            from TTS.api import TTS  # type: ignore[import-untyped]
+            from indic_parler_tts import IndicParlerTTS  # type: ignore[import-untyped]
         except ImportError:
-            print("❌ TTS library not found. Run setup script or: pip install TTS")
+            print("❌ indic-parler-tts library not found.")
+            print("   Run setup script or: pip install git+https://github.com/ai4bharat/indic-parler-tts.git")
             sys.exit(1)
 
-        print("🔄 Loading TTS model (first run downloads ~1-2 GB)...")
-        self.tts = TTS(
-            model_name="tts_models/multilingual/multi-dataset/your_tts",
-            gpu=gpu,
-            progress_bar=True,
+        device = "cuda" if gpu else "cpu"
+        print(f"🔄 Loading Indic Parler TTS model for Nepali (device: {device})...")
+        print("   First run downloads the model — this may take a few minutes.")
+        self.tts = IndicParlerTTS(
+            language="ne",  # Nepali
+            device=device,
         )
         self.gpu = gpu
-        print("✅ TTS model loaded successfully!")
+        print("✅ Indic Parler TTS model loaded successfully!")
 
     # ------------------------------------------------------------------
     # Public API
@@ -50,20 +48,16 @@ class NepaliVoiceCloner:
         text: str,
         reference_audio: str,
         output_file: str = "output.wav",
-        language: str = "hi",
+        language: str = "ne",
     ) -> str | None:
         """
-        Clone voice and synthesize text.
+        Clone voice and synthesize text using Indic Parler TTS.
 
         Args:
-            text: Text to synthesize (Nepali/Hindi Devanagari script).
+            text: Text to synthesize (Nepali Devanagari script).
             reference_audio: Path to reference voice sample (10-30 seconds recommended).
             output_file: Path for the generated audio file.
-            language: BCP-47 language code supported by YourTTS.
-                      Supported values: ``"en"``, ``"fr-fr"``, ``"pt-br"``, ``"hi"``.
-                      Defaults to ``"hi"`` (Hindi) because YourTTS does **not** support
-                      ``"ne"`` (Nepali) directly; Hindi shares the Devanagari script and
-                      works as a practical fallback for Nepali text.
+            language: Language code — ``"ne"`` for Nepali (default).
 
         Returns:
             Path to the generated file, or ``None`` on failure.
@@ -80,11 +74,10 @@ class NepaliVoiceCloner:
         print(f"🌐 Language: {language}")
 
         try:
-            self.tts.tts_to_file(
+            self.tts.synthesize(
                 text=text,
                 speaker_wav=reference_audio,
-                language=language,
-                file_path=output_file,
+                output_path=output_file,
             )
             print(f"✅ Successfully created: {output_file}")
             return output_file
@@ -97,7 +90,7 @@ class NepaliVoiceCloner:
         text_file: str,
         reference_audio: str,
         output_file: str = "output.wav",
-        language: str = "hi",
+        language: str = "ne",
     ) -> str | None:
         """
         Synthesize speech from a plain-text file.
@@ -106,7 +99,7 @@ class NepaliVoiceCloner:
             text_file: Path to a UTF-8 encoded text file.
             reference_audio: Path to reference voice sample.
             output_file: Path for the generated audio file.
-            language: BCP-47 language code.
+            language: Language code.
 
         Returns:
             Path to the generated file, or ``None`` on failure.
@@ -131,7 +124,7 @@ class NepaliVoiceCloner:
         texts: list[str],
         reference_audio: str,
         output_dir: str = "data/output",
-        language: str = "hi",
+        language: str = "ne",
         prefix: str = "output",
     ) -> list[str]:
         """
@@ -141,7 +134,7 @@ class NepaliVoiceCloner:
             texts: List of texts to synthesize.
             reference_audio: Path to reference voice sample.
             output_dir: Directory for generated audio files.
-            language: BCP-47 language code.
+            language: Language code.
             prefix: Filename prefix for output files.
 
         Returns:
@@ -168,7 +161,7 @@ class NepaliVoiceCloner:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="nepali_voice_clone",
-        description="Nepali Voice Cloning TTS — fully local, no cloud required.",
+        description="Nepali Voice Cloning TTS — powered by Indic Parler TTS (AI4Bharat).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -196,7 +189,7 @@ Examples:
         "--output", type=str, default="data/output/output.wav", help="Output audio file path"
     )
     parser.add_argument(
-        "--language", type=str, default="hi", help="BCP-47 language code (default: hi for Hindi/Nepali)"
+        "--language", type=str, default="ne", help="Language code (default: ne for Nepali)"
     )
     parser.add_argument(
         "--gpu", action="store_true", help="Enable GPU acceleration (default: CPU)"
@@ -233,3 +226,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+

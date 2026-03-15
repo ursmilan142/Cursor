@@ -25,6 +25,15 @@ try {
     exit 1
 }
 
+# ---- Check Python version is 3.8 or later ----
+$versionOk = python -c "import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)" 2>&1
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Python 3.8 or later is required. Found $pythonVersion." -ForegroundColor Red
+    Write-Host "   Download a newer Python from https://python.org/downloads/" -ForegroundColor Red
+    exit 1
+}
+Write-Host "✅ Python version is sufficient for Indic Parler TTS." -ForegroundColor Green
+
 # ---- Create virtual environment ----
 if (-not $SkipVenv) {
     if (-not (Test-Path "venv")) {
@@ -51,32 +60,9 @@ if ($GPU) {
     pip install "torch==2.6.0+cpu" "torchaudio==2.6.0+cpu" --index-url https://download.pytorch.org/whl/cpu
 }
 
-# ---- Install remaining dependencies ----
-Write-Host "📦 Installing remaining dependencies..." -ForegroundColor Yellow
-pip install TTS numpy scipy soundfile librosa pydub
-
-# ---- Install PyAudio (with pipwin fallback) ----
-Write-Host "🎤 Installing PyAudio..." -ForegroundColor Yellow
-$pyaudioOk = $false
-try {
-    pip install pyaudio
-    $pyaudioOk = $true
-} catch {
-    Write-Host "⚠️  Direct PyAudio install failed. Trying pipwin..." -ForegroundColor Yellow
-}
-
-if (-not $pyaudioOk) {
-    try {
-        pip install pipwin
-        pipwin install pyaudio
-        $pyaudioOk = $true
-    } catch {
-        Write-Host "⚠️  PyAudio could not be installed automatically." -ForegroundColor Yellow
-        Write-Host "   Voice recording will not be available." -ForegroundColor Yellow
-        Write-Host "   Download PyAudio wheel manually from:" -ForegroundColor Yellow
-        Write-Host "   https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio" -ForegroundColor Yellow
-    }
-}
+# ---- Install indic-parler-tts and audio dependencies ----
+Write-Host "📦 Installing Indic Parler TTS and audio dependencies..." -ForegroundColor Yellow
+pip install "git+https://github.com/ai4bharat/indic-parler-tts.git" numpy scipy soundfile sounddevice
 
 # ---- Create output directory ----
 New-Item -ItemType Directory -Force -Path "data\output" | Out-Null
