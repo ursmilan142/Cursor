@@ -1,0 +1,29 @@
+# ============================================================
+# Nepali Voice Cloning TTS — Python Dependencies
+# Tested with Python 3.14 on Windows (CPU mode)
+# ============================================================
+
+# ---- Deep Learning (CPU build, Windows-compatible) --------
+torch==2.3.1+cpu
+torchaudio==2.3.1+cpu
+
+# ---- Coqui TTS --------------------------------------------
+TTS==0.22.0
+
+# ---- Audio processing -------------------------------------
+numpy>=1.26,<3
+scipy>=1.13
+soundfile>=0.12
+librosa>=0.10
+pydub>=0.25
+
+# ---- Microphone recording ---------------------------------
+# PyAudio wheels for Windows: install via pipwin if pip fails
+# pip install pipwin && pipwin install pyaudio
+pyaudio>=0.2.14
+
+# ---- Optional: REST API server ----------------------------
+# Uncomment to enable the FastAPI server (api_server.py)
+# fastapi>=0.111
+# uvicorn[standard]>=0.30
+# python-multipart>=0.0.9

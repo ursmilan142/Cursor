@@ -1,0 +1,42 @@
+# ── Generated audio files ───────────────────────────────────
+data/output/*.wav
+data/output/*.mp3
+data/output/*.ogg
+data/uploads/
+
+# ── Voice samples (keep my_voice.wav out of git) ────────────
+my_voice.wav
+*.voice.wav
+
+# ── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Virtual environments ─────────────────────────────────────
+venv/
+.venv/
+env/
+.env/
+
+# ── TTS model cache ──────────────────────────────────────────
+.tts/
+
+# ── IDE / editor ─────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
