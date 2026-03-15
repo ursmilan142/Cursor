@@ -58,7 +58,7 @@ python -m pip install --upgrade pip setuptools wheel
 
 # ---- Install PyTorch (CPU) ----
 info "Installing PyTorch (CPU build)..."
-pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install "torch==2.6.0+cpu" "torchaudio==2.6.0+cpu" --index-url https://download.pytorch.org/whl/cpu
 
 # ---- Install remaining dependencies ----
 info "Installing TTS and audio dependencies..."

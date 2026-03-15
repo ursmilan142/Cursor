@@ -186,7 +186,7 @@ If you have an NVIDIA GPU with CUDA support:
 
 ```powershell
 # Reinstall PyTorch with CUDA
-pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install "torch==2.6.0+cu121" "torchaudio==2.6.0+cu121" --index-url https://download.pytorch.org/whl/cu121
 
 # Use GPU for synthesis
 python scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav --gpu

@@ -45,10 +45,10 @@ python -m pip install --upgrade pip setuptools wheel
 # ---- Install PyTorch (CPU unless --GPU flag) ----
 if ($GPU) {
     Write-Host "🚀 Installing PyTorch with CUDA support..." -ForegroundColor Yellow
-    pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+    pip install "torch==2.6.0+cu121" "torchaudio==2.6.0+cu121" --index-url https://download.pytorch.org/whl/cu121
 } else {
     Write-Host "💻 Installing PyTorch (CPU build)..." -ForegroundColor Yellow
-    pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+    pip install "torch==2.6.0+cpu" "torchaudio==2.6.0+cpu" --index-url https://download.pytorch.org/whl/cpu
 }
 
 # ---- Install remaining dependencies ----

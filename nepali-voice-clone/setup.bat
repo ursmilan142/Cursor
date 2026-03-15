@@ -46,7 +46,7 @@ python -m pip install --upgrade pip setuptools wheel
 
 REM ---- Install PyTorch (CPU) ----
 echo [INFO] Installing PyTorch (CPU build for Windows compatibility)...
-pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install "torch==2.6.0+cpu" "torchaudio==2.6.0+cpu" --index-url https://download.pytorch.org/whl/cpu
 if errorlevel 1 (
     echo [ERROR] PyTorch installation failed. Check your internet connection.
     pause

@@ -61,7 +61,7 @@ error: Microsoft Visual C++ 14.0 or greater is required
 ### ❌ PyTorch installation fails
 
 ```cmd
-pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install "torch==2.6.0+cpu" "torchaudio==2.6.0+cpu" --index-url https://download.pytorch.org/whl/cpu
 ```
 
 If that fails, try the stable release page: <https://pytorch.org/get-started/locally/>
