@@ -13,20 +13,20 @@ echo   Nepali Voice Cloning TTS -- Windows CMD Setup
 echo ============================================================
 echo.
 
-REM ---- Verify Python ----
-python --version >nul 2>&1
+REM ---- Verify py ----
+py --version >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] Python not found. Download from https://python.org
+    echo [ERROR] py not found. Download from https://py.org
     pause
     exit /b 1
 )
-for /f "tokens=*" %%i in ('python --version 2^>^&1') do set PYVER=%%i
+for /f "tokens=*" %%i in ('py --version 2^>^&1') do set PYVER=%%i
 echo [OK] Found %PYVER%
 
 REM ---- Create virtual environment ----
 if not exist "venv" (
     echo [INFO] Creating virtual environment...
-    python -m venv venv
+    py -m venv venv
     if errorlevel 1 (
         echo [ERROR] Failed to create virtual environment.
         pause
@@ -42,7 +42,7 @@ call venv\Scripts\activate.bat
 
 REM ---- Upgrade pip ----
 echo [INFO] Upgrading pip, setuptools, wheel...
-python -m pip install --upgrade pip setuptools wheel
+py -m pip install --upgrade pip setuptools wheel
 
 REM ---- Install PyTorch (CPU) ----
 echo [INFO] Installing PyTorch (CPU build for Windows compatibility)...
@@ -71,7 +71,7 @@ if errorlevel 1 (
         echo [WARNING] PyAudio could not be installed automatically.
         echo           Voice recording will not be available.
         echo           Download PyAudio wheel manually:
-        echo           https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
+        echo           https://www.lfd.uci.edu/~gohlke/pylibs/#pyaudio
     )
 )
 
@@ -86,10 +86,10 @@ echo ============================================================
 echo.
 echo Next steps:
 echo   1. Record your voice:
-echo        python scripts\record_voice.py
+echo        py scripts\record_voice.py
 echo.
 echo   2. Synthesize Nepali text:
-echo        python scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav
+echo        py scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav
 echo.
 echo   See README.md and WINDOWS_GUIDE.md for more details.
 echo.
