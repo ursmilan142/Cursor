@@ -92,8 +92,8 @@ def _add_synthesis_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--language",
         type=str,
-        default="hi",
-        help="BCP-47 language code (default: hi for Hindi/Nepali; YourTTS supports en, fr-fr, pt-br, hi)",
+        default="ne",
+        help="Language code (default: ne for Nepali; Indic Parler TTS natively supports Nepali)",
     )
     parser.add_argument("--gpu", action="store_true", help="Enable GPU acceleration")
     parser.add_argument(
@@ -155,7 +155,7 @@ Quick Start:
     run.add_argument(
         "--output", type=str, default="data/output/output.wav", help="Output audio file path"
     )
-    run.add_argument("--language", type=str, default="hi", help="BCP-47 language code (default: hi)")
+    run.add_argument("--language", type=str, default="ne", help="Language code (default: ne for Nepali)")
     run.add_argument("--gpu", action="store_true", help="Enable GPU acceleration")
 
     return parser

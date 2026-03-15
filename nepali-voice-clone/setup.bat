@@ -16,13 +16,22 @@ echo.
 REM ---- Verify py ----
 py --version >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] py not found. Download Python 3.11 from https://python.org/downloads/
+    echo [ERROR] py not found. Download Python 3.8+ from https://python.org/downloads/
     pause
     exit /b 1
 )
 for /f "tokens=*" %%i in ('py --version 2^>^&1') do set PYVER=%%i
 echo [OK] Found %PYVER%
-echo [NOTE] Python 3.11 is recommended. TTS==0.22.0 requires Python ^<=3.11.
+
+REM ---- Check Python version is 3.8 or later ----
+py -c "import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)" >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] Python 3.8 or later is required. Found %PYVER%.
+    echo         Download a newer Python from https://python.org/downloads/
+    pause
+    exit /b 1
+)
+echo [OK] Python version is sufficient for Indic Parler TTS.
 
 REM ---- Create virtual environment ----
 if not exist "venv" (
@@ -54,19 +63,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM ---- Install remaining dependencies ----
-echo [INFO] Installing TTS and audio dependencies...
-pip install TTS numpy scipy soundfile librosa pydub
+REM ---- Install indic-parler-tts and audio dependencies ----
+echo [INFO] Installing Indic Parler TTS and audio dependencies...
+pip install "git+https://github.com/ai4bharat/indic-parler-tts.git" numpy scipy soundfile sounddevice
 if errorlevel 1 (
     echo [WARNING] Some packages failed to install. Check the error messages above.
-)
-
-REM ---- Install sounddevice ----
-echo [INFO] Installing sounddevice (cross-platform audio, no build tools needed)...
-pip install sounddevice
-if errorlevel 1 (
-    echo [WARNING] sounddevice could not be installed.
-    echo           Voice recording will not be available.
 )
 
 REM ---- Create output directory ----
@@ -82,8 +83,8 @@ echo Next steps:
 echo   1. Record your voice:
 echo        py scripts\record_voice.py
 echo.
-echo   2. Synthesize Nepali text (using Hindi language code as fallback):
-echo        py scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav --language hi
+echo   2. Synthesize Nepali text with your cloned voice:
+echo        py scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav
 echo.
 echo   See README.md and WINDOWS_GUIDE.md for more details.
 echo.

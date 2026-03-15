@@ -1,6 +1,6 @@
 # Windows Setup Guide — Nepali Voice Cloning TTS
 
-This guide walks you through a complete, step-by-step installation on **Windows 10/11** using Python 3.14.
+This guide walks you through a complete, step-by-step installation on **Windows 10/11**.
 
 ---
 
@@ -8,29 +8,25 @@ This guide walks you through a complete, step-by-step installation on **Windows 
 
 | Requirement | Notes |
 |---|---|
-| **Python 3.11** (recommended) | Download from [python.org](https://python.org/downloads/) — `TTS==0.22.0` (Coqui) requires Python ≤ 3.11; see [Coqui TTS issue tracker](https://github.com/coqui-ai/TTS/issues) for 3.12+ status |
+| **Python 3.8+** | Download from [python.org](https://python.org/downloads/) |
 | **Git** | Download from [git-scm.com](https://git-scm.com/) |
 | **~5 GB free disk space** | For model cache and dependencies |
 | **Microphone** | For recording your voice sample |
-| **Internet connection** | Only needed for the first model download (~1-2 GB) |
+| **Internet connection** | Only needed for the first model download |
 
 ---
 
-## Step 1 — Install Python 3.11
+## Step 1 — Install Python
 
 1. Go to <https://python.org/downloads/>
-2. Download **Python 3.11** (Windows installer, 64-bit)
+2. Download **Python 3.8 or later** (Windows installer, 64-bit)
 3. Run the installer and **check "Add Python to PATH"**
 4. Click **Install Now**
-
-> **Why 3.11?** The Coqui TTS library (`TTS==0.22.0`) requires Python 3.11.
-> It may not install correctly on Python 3.12 or later.
 
 Verify the installation:
 ```cmd
 python --version
 ```
-Expected output: `Python 3.11.x`
 
 ---
 
@@ -81,7 +77,7 @@ The setup script will:
 1. Create a Python virtual environment (`venv/`)
 2. Upgrade `pip`, `setuptools`, and `wheel`
 3. Install PyTorch (CPU build)
-4. Install Coqui TTS and audio libraries
+4. Install Indic Parler TTS and audio libraries
 5. Install `sounddevice` for cross-platform microphone recording
 
 ---
@@ -135,8 +131,7 @@ python scripts\record_voice.py
 python scripts\main.py synthesize ^
     --text "नमस्ते, मेरो नाम उर्स हो। यो एक परीक्षण हो।" ^
     --voice-sample my_voice.wav ^
-    --output data\output\hello.wav ^
-    --language hi
+    --output data\output\hello.wav
 ```
 
 **Git Bash:**
@@ -144,15 +139,13 @@ python scripts\main.py synthesize ^
 python scripts/main.py synthesize \
     --text "नमस्ते, मेरो नाम उर्स हो।" \
     --voice-sample my_voice.wav \
-    --output data/output/hello.wav \
-    --language hi
+    --output data/output/hello.wav
 ```
 
-> **Note on language support:** The YourTTS model does **not** support Nepali (`ne`).
-> Use `--language hi` (Hindi) — it shares the Devanagari script and works as a
-> practical fallback for voice cloning with Nepali text.
+> **Native Nepali support:** Indic Parler TTS is trained specifically for Nepali (`ne`),
+> which is the default language. No workaround needed.
 
-> **First run:** The TTS model (~1–2 GB) will be downloaded automatically.
+> **First run:** The model will be downloaded automatically.
 > Subsequent runs are fully offline.
 
 ---
@@ -182,8 +175,7 @@ python scripts\main.py synthesize ^
     --text-file data\nepali_samples.txt ^
     --voice-sample my_voice.wav ^
     --output data\output\batch.wav ^
-    --batch ^
-    --language hi
+    --batch
 ```
 
 Output files: `data\output\batch_001.wav`, `batch_002.wav`, …
@@ -196,10 +188,10 @@ If you have an NVIDIA GPU with CUDA support:
 
 ```powershell
 # Reinstall PyTorch with CUDA
-pip install "torch==2.6.0+cu121" "torchaudio==2.6.0+cu121" --index-url https://download.pytorch.org/whl/cu121
+pip install "torch>=1.9.0+cu121" "torchaudio>=0.9.0+cu121" --index-url https://download.pytorch.org/whl/cu121
 
 # Use GPU for synthesis
-python scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav --gpu --language hi
+python scripts\main.py synthesize --text "नमस्ते" --voice-sample my_voice.wav --gpu
 ```
 
 ---
@@ -210,7 +202,7 @@ To remove the virtual environment and cached models:
 
 ```cmd
 rmdir /s /q venv
-rmdir /s /q %USERPROFILE%\.tts
+rmdir /s /q %USERPROFILE%\.cache\huggingface
 ```
 
 ---
